@@ -59,16 +59,18 @@ class exonaut{
 		int set_motor_speed(float new_speed1, float new_speed2);
 
 		//Ultrasonic sensor
-		void Ultrasound();
-		bool wireWriteByte(uint8_t addr, uint8_t val);
-		bool wireWriteDataArray(uint8_t addr, uint8_t reg,uint8_t *val,unsigned int len);
-		int wireReadDataArray(uint8_t addr, uint8_t reg, uint8_t *val, unsigned int len);
+		//void Ultrasound();
 		void Breathing(uint8_t r1, uint8_t g1, uint8_t b1, uint8_t r2, uint8_t g2, uint8_t b2);
 		void Color(uint8_t r1, uint8_t g1, uint8_t b1, uint8_t r2, uint8_t g2, uint8_t b2);
-		uint16_t GetDistance();
+		uint16_t getDistance();
 		
 		//line follower
 		bool readLineFollower(uint8_t &val);
+		
+	private:
+		bool wireWriteByte(uint8_t addr, uint8_t val);
+		bool wireWriteDataArray(uint8_t addr, uint8_t reg,uint8_t *val,unsigned int len);
+		int wireReadDataArray(uint8_t addr, uint8_t reg, uint8_t *val, unsigned int len);
 };
 
 

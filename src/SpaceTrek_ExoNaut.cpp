@@ -7,6 +7,7 @@ void exonaut::begin(void){
 	this->set_motor_type(1);
 	
 	Wire.begin();
+	Wire.setClock(90000);
 }
 
 void exonaut::set_motor_type(uint8_t motortype){
@@ -31,10 +32,10 @@ int exonaut::set_motor_speed(float new_speed1, float new_speed2){
 
 
 
-void exonaut::Ultrasound(){
-	Wire.begin();
-	Wire.setClock(90000);
-}
+// void exonaut::Ultrasound(){
+	// Wire.begin();
+	// Wire.setClock(90000);
+// }
 
 //write byte
 bool exonaut::wireWriteByte(uint8_t addr, uint8_t val){
@@ -102,7 +103,7 @@ void exonaut::Color(uint8_t r1, uint8_t g1, uint8_t b1, uint8_t r2, uint8_t g2, 
 }
 
 //Get the distance unit measured by ultrasonic wave in mm
-uint16_t exonaut::GetDistance(){
+uint16_t exonaut::getDistance(){
 	uint16_t distance;
 	wireReadDataArray(ULTRASOUND_I2C_ADDR, 0,(uint8_t *)&distance,2);
 	return distance;
