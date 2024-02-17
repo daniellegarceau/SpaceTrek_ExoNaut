@@ -1,10 +1,12 @@
+//#include <Arduino.h>
 #include "SpaceTrek_ExoNaut.h"
 #include <Wire.h>
 
 void exonaut::begin(void){
 	ets_serial.begin(115200);
-	
 	this->set_motor_type(1);
+	
+	Wire.begin();
 }
 
 void exonaut::set_motor_type(uint8_t motortype){
@@ -14,7 +16,6 @@ void exonaut::set_motor_type(uint8_t motortype){
         ets_serial.write(buf,6);
     }
 }
-
 
 int exonaut::set_motor_speed(float new_speed1, float new_speed2){
     uint8_t buf[] = {0x55, 0x55, 0x05, 55, 0x02, 0x00, 0x00};
@@ -105,4 +106,20 @@ uint16_t exonaut::GetDistance(){
 	uint16_t distance;
 	wireReadDataArray(ULTRASOUND_I2C_ADDR, 0,(uint8_t *)&distance,2);
 	return distance;
+}
+
+
+
+bool exonaut::readLineFollower(uint8_t &val){
+	Wire.beginTransmission(LINE_FOLLOWER_I2C_ADDR);
+	Wire.write(0x01);
+	if(Wire.endTransmission() != 0){
+		//should set val to all sensors not tripped....
+		return false;
+	}
+	Wire.requestFrom(LINE_FOLLOWER_I2C_ADDR, 1);
+	while(Wire.available()){
+		val = Wire.read();
+	}
+	return true;
 }

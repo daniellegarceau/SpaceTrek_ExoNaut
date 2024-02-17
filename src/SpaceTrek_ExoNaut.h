@@ -1,4 +1,5 @@
 /*
+*
 *SpaceTrek_ExoNaut.h
 *
 *Author:	Andrew Gafford
@@ -17,8 +18,10 @@
 #include <Wire.h>
 #include <HardwareSerial.h>
 
+//Serial for motor control (possible other CoreX features)
 #define ets_serial Serial2
 
+//Ultrasonic Sensor Registers
 #define ULTRASOUND_I2C_ADDR			0x77		//Ultrasonic sensor I2C address
 #define DISDENCE_L					0			//Register with lower 8 bits of distance, unit mm
 #define DISDENCE_H					1			//Register with upper 8 bits of distance, unit mm
@@ -36,16 +39,26 @@
 #define RGB2_G_BREATHING_CYCLE		13
 #define RGB2_B_BREATHING_CYCLE		14
 
+//Ultrasonic Sensor Definitions
 #define URGB_BRIGHTNESS				50			//Default RGB Brightness, 0-255
 #define RGB_WORK_SIMPLE_MODE		0
 #define RGB_WORK_BREATHING_MODE		1
 
+//Line Follower Definitions
+#define LINE_FOLLOWER_I2C_ADDR		0x78
+#define LF_CH1(x)					(x & 0x01)
+#define LF_CH2(x)					((x>>1) & 0x01)
+#define LF_CH3(x)					((x>>2) & 0x01)
+#define LF_CH4(x)					((x>>3) & 0x01)
+
 class exonaut{
 	public:
+		//Motor control
 		void begin(void);
 		void set_motor_type(uint8_t motortype);
 		int set_motor_speed(float new_speed1, float new_speed2);
 
+		//Ultrasonic sensor
 		void Ultrasound();
 		bool wireWriteByte(uint8_t addr, uint8_t val);
 		bool wireWriteDataArray(uint8_t addr, uint8_t reg,uint8_t *val,unsigned int len);
@@ -53,6 +66,9 @@ class exonaut{
 		void Breathing(uint8_t r1, uint8_t g1, uint8_t b1, uint8_t r2, uint8_t g2, uint8_t b2);
 		void Color(uint8_t r1, uint8_t g1, uint8_t b1, uint8_t r2, uint8_t g2, uint8_t b2);
 		uint16_t GetDistance();
+		
+		//line follower
+		bool readLineFollower(uint8_t &val);
 };
 
 
