@@ -18,10 +18,28 @@
 #include <Wire.h>
 #include <HardwareSerial.h>
 
+//Port Pin Mappings
+
 //Serial for motor control (possible other CoreX features)
 #define ets_serial Serial2
 
-//Ultrasonic Sensor Registers
+//Co-processor definitions
+
+//On board Neo Pixel definitions
+#define NEO_PIXEL_PIN				23
+#define NUM_PIXELS					6
+
+//On board button definitions
+
+//On board buzzer Definitions
+
+//On board IR Definitions
+
+//On board Mic definitions
+
+
+
+//Ultrasonic Sensor Definitions
 #define ULTRASOUND_I2C_ADDR			0x77		//Ultrasonic sensor I2C address
 #define DISDENCE_L					0			//Register with lower 8 bits of distance, unit mm
 #define DISDENCE_H					1			//Register with upper 8 bits of distance, unit mm
@@ -38,8 +56,6 @@
 #define RGB2_R_BREATHING_CYCLE		12			//Probe No. 2
 #define RGB2_G_BREATHING_CYCLE		13
 #define RGB2_B_BREATHING_CYCLE		14
-
-//Ultrasonic Sensor Definitions
 #define URGB_BRIGHTNESS				50			//Default RGB Brightness, 0-255
 #define RGB_WORK_SIMPLE_MODE		0
 #define RGB_WORK_BREATHING_MODE		1
@@ -51,12 +67,27 @@
 #define LF_CH3(x)					((x>>2) & 0x01)
 #define LF_CH4(x)					((x>>3) & 0x01)
 
+//AI-Camera Definitions
+
+//IMU Definitions
+
+//Temp & Humidity Definitions
+
+//MP3 Definitions
+
+//7-Segment Display Definitions
+
+//Dot matrix definitions
+
+
+
 class exonaut{
 	public:
 		//Motor control
 		void begin(void);
 		void set_motor_type(uint8_t motortype);
 		int set_motor_speed(float new_speed1, float new_speed2);
+		void set_motor_power(int m1, int m2);
 
 		//Ultrasonic sensor
 		//void Ultrasound();

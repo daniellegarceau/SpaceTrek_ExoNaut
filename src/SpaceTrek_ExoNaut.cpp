@@ -30,14 +30,21 @@ int exonaut::set_motor_speed(float new_speed1, float new_speed2){
     return 0;
 }
 
+void robotrun::set_motor_power(int m1, int m2){
+    uint8_t buf[6] = {0x55, 0x55, 0x04, 0x32, 0x00, 0x00};
+    m1 = m1 > 100 ? 100 : m1;
+    m2 = m2 > 100 ? 100 : m2;
+    m1 = m1 < -100 ? -100 : m1;
+    m2 = m2 < -100 ? -100 : m2;
+    m1 = -m1;
+    m2 = -m2;
+    buf[4] = m2 & 0xFF;
+    buf[5] = m1 & 0xFF;
+    ets_serial.write(buf,6);
+}
 
 
-// void exonaut::Ultrasound(){
-	// Wire.begin();
-	// Wire.setClock(90000);
-// }
-
-//write byte
+//Wire write byte
 bool exonaut::wireWriteByte(uint8_t addr, uint8_t val){
 	Wire.beginTransmission(addr);
 	Wire.write(val);
@@ -47,7 +54,7 @@ bool exonaut::wireWriteByte(uint8_t addr, uint8_t val){
 	return true;
 }
 
-//Write multiple bytes
+//Wire write multiple bytes
 bool exonaut::wireWriteDataArray(uint8_t addr, uint8_t reg,uint8_t *val,unsigned int len){
 	unsigned int i;
 	Wire.beginTransmission(addr);
