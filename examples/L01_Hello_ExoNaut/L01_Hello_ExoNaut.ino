@@ -10,7 +10,7 @@
  * Date: Feb. 12th, 2024
 **************************************************/
 
-#include <SpaceTrek_ExoNaut.h>                //Include the ExoNaut library
+#include <ExoNaut.h>                          //Include the ExoNaut library
 
 void setup() {                                //The setup() function runs once
   Serial.begin(9600);                         //Setup the serial communication from the ExoNaut to the computer

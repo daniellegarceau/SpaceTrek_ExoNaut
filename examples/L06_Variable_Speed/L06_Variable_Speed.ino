@@ -1,14 +1,13 @@
 /**************************************************
- * L04_Variable_Speed.ino
+ * L06_Variable_Speed.ino
  * An example program to make the ExoNaut robot turn right for 1 second
  *
  * Author: Andrew Gafford
  * Email: agafford@spacetrek.com
- * Date: Feb. 12th, 2024
+ * Date: May 20th, 2024
 **************************************************/
 
-//#include <Arduino.h>
-#include <SpaceTrek_ExoNaut.h>                //include the ExoNaut library
+#include <ExoNaut.h>                          //include the ExoNaut library
 
 exonaut robot;                                //declare the exonaut object named robot
 int speed = 50;                               //declare and initialize a variable speed set to the value 50

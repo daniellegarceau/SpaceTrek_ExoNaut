@@ -1,17 +1,19 @@
 /**************************************************
- * L08_Line_Follower_Advanced.ino
+ * L13_Line_Follower_Advanced.ino
  * An example program to make the ExoNaut follow a line
  *
  * Author: Andrew Gafford
  * Email: agafford@spacetrek.com
- * Date: Feb. 16th, 2024
+ * Date: May 20th, 2024
 **************************************************/
 
-//#include <Arduino.h>
-#include <SpaceTrek_ExoNaut.h>                //include the ExoNaut library
+#include <ExoNaut.h>                          //include the ExoNaut library
+#include <ExoNaut_LineFollower.h>             //include the ExoNaut Line Follower library
 
 exonaut robot;                                //declare the exonaut object named robot
-uint8_t lineData = 0;
+lineFollower lf;
+
+uint8_t lineData = 0;                         //a variable to store the line data in
 
 void setup() {                                //the setup() function runs once
   robot.begin();                              //start the robot object
@@ -21,7 +23,7 @@ void setup() {                                //the setup() function runs once
 
 
 void loop() {
-  robot.readLineFollower(lineData);
+  lf.readLineFollower(lineData);
   switch(lineData){
     case 0b0000:                              //all detect white
       robot.set_motor_speed(0, 0);
