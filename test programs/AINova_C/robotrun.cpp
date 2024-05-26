@@ -1,6 +1,6 @@
 #include "robotrun.h"
 
-#define PULSE_COUNT 1120 //一圈的计数 (Rotation Count)
+#define PULSE_COUNT 1120 //pulse count per rotation Count
 
 #define BUTTON_A_PIN 0
 #define BUTTON_B_PIN 2
@@ -8,16 +8,12 @@
 bool low_power_flag;
 bool action_finish = true;
 
-typedef struct __hw_ir_event_t {
-    uint16_t ir_code;
-    int8_t event;
-} hw_ir_event_t;
 
 // create uart2 instance
 hw_uart2_obj_t hw_uart2_obj = {
     .initilized = false,
     .volt = -1,
-    // .version[0] = "\0",
+    //.version[0] = "\0",
 };
 
 // IR remote instance
@@ -56,8 +52,7 @@ inline uint8_t hex2int(uint8_t ch)
 #define HEX_TO_INT(high, low)   ((uint8_t)((0xF0 & (((hex2int((high))) << 4))) | (0x0F & (hex2int((low))))))
 
 
-void rx_task(void *pvParameter)
-{
+void rx_task(void *pvParameter){
     static uint8_t rx_buf[64];
     static uint8_t cmd_buf[64];
     uint8_t i = 0, index = 0;
@@ -89,7 +84,7 @@ void rx_task(void *pvParameter)
                     uint8_t cmd = cmd_buf[0];
                     cmd_buf[index] = '\0';
                     switch (cmd) {
-                        case 'A':  /* voltage and recived ir code */
+                        case 'A':  //voltage and recived ir code
                             if (index == 7) {
                                 if(hw_uart2_obj.volt == -1){
                                   hw_uart2_obj.volt = (((float)HEX_TO_INT(cmd_buf[1], cmd_buf[2])) * 51.765f);
@@ -113,28 +108,28 @@ void rx_task(void *pvParameter)
                             if (index == 3) {
                                 action_finish = true;
                             }
-                            if (ir_code != hw_ir.ir_key) { /* 按键发生变化(Button state changes) */
-                                if (ir_code != 0x00) { /*新的按键不等于0， 就是由没按下变按下(If the new button status is not equal to 0, it means a transition from not pressed to pressed.) */
-                                    /* 按键按下(Button is pressed) */
+                            if (ir_code != hw_ir.ir_key) { //Button state changes
+                                if (ir_code != 0x00) { //If the new button status is not equal to 0, it means a transition from not pressed to pressed.
+                                    //Button is pressed
                                     hw_ir_event_t event = {.ir_code = ir_code, .event = 1};
                                     // xQueueSend(hw_ir.ir_queue, &event, 0);
-                                } else { /* 新的按键等于等于0，由按下变没按下(When the new button state is not equal to 0, it indicates a transition from not pressed to pressed) */
+                                } else { //When the new button state is not equal to 0, it indicates a transition from not pressed to pressed
                                     if (ir_count >= 30) {
-                                        /*从长按松开(Release from long press) */
+                                        //Release from long press
                                         hw_ir_event_t event = {.ir_code = hw_ir.ir_key, .event = 5};
                                         // xQueueSend(hw_ir.ir_queue, &event, 0);
                                     } else {
-                                        /*从短按松开(Release from short press) */
+                                        //Release from short press
                                         hw_ir_event_t event = {.ir_code = hw_ir.ir_key, .event = 2};
                                         // xQueueSend(hw_ir.ir_queue, &event, 0);
                                     }
                                 }
                                 hw_ir.ir_key = ir_code;
                                 ir_count = 0;
-                            } else { /* 按键没变(Button state doesn't change) */
+                            } else { //Button state doesn't change
                                 if (ir_code != 0) {
                                     if (ir_count == 30) {
-                                        /* 按键已经被按下没有变化, 看计数，达到则触发长按(The button remains pressed without any change. Check the count, trigger a long press when reached.)*/
+                                        //The button remains pressed without any change. Check the count, trigger a long press when reached.
                                         hw_ir_event_t event = {.ir_code = ir_code, .event = 4};
                                         // xQueueSend(hw_ir.ir_queue, &event, 0);
                                     }
@@ -144,15 +139,15 @@ void rx_task(void *pvParameter)
                                 }
                             }
                             break;
-                        case 'V': /* coprocesser firmware version */
+                        case 'V': // coprocesser firmware version 
                             if (index == 4) {
                                 memcpy(hw_uart2_obj.version, cmd_buf, index);
                                 hw_uart2_obj.version[index + 1] = '\0';
                             }
                             break;
-                        case 'I':    /* learned ir code */
+                        case 'I':    //learned ir code
                             if (index == 4) {
-                                if (cmd_buf[1] == 'R' && cmd_buf[2] == 'O' && cmd_buf[3] == 'K') {  /* learnning ok */
+                                if (cmd_buf[1] == 'R' && cmd_buf[2] == 'O' && cmd_buf[3] == 'K') {  // learnning ok
                                     // play_tone_c(1000, 100, false);
                                     // play_tone_c(2000, 100, false);
                                 }
@@ -194,8 +189,7 @@ void rx_task(void *pvParameter)
 
 
 
-void robotrun::begin(void)
-{
+void robotrun::begin(void){
   pinMode(BUTTON_A_PIN,INPUT);
   pinMode(BUTTON_B_PIN,INPUT);
   ets_serial.begin(115200);
@@ -205,8 +199,7 @@ void robotrun::begin(void)
   hw_reset_encoder_counter(0);
 }
 
-void robotrun::set_motor_speed(int m1, int m2)
-{
+void robotrun::set_motor_speed(int m1, int m2){
     uint8_t buf[6] = {0x55, 0x55, 0x04, 0x32, 0x00, 0x00};
     m1 = m1 > 100 ? 100 : m1;
     m2 = m2 > 100 ? 100 : m2;
@@ -219,31 +212,26 @@ void robotrun::set_motor_speed(int m1, int m2)
     ets_serial.write(buf,6);
 }
 
-void robotrun::hw_encoder_motor_set_motor_type(uint8_t motortype)
-{
+void robotrun::hw_encoder_motor_set_motor_type(uint8_t motortype){
     if (motortype == 1 || motortype == 2) {
         uint8_t buf[] = {0x55, 0x55, 0x04, 55, 1, 0};
         buf[5] = motortype;
         ets_serial.write(buf,6);
         switch (motortype) {
-            case 1: {
+            case 1:
                 hw_encoder_motor.pulse_p_r = PULSE_COUNT;
                 break;
-            }
-            case 2: {
+            case 2:
                 hw_encoder_motor.pulse_p_r = 1400 + 31;
                 break;
-            }
-            default: {
+            default:
                 hw_encoder_motor.pulse_p_r = PULSE_COUNT;
                 break;
-            }
         }
     }
 }
 
-void robotrun::hw_encoder_motor_set_speed_base(float new_speed1, float new_speed2)
-{
+void robotrun::hw_encoder_motor_set_speed_base(float new_speed1, float new_speed2){
     uint8_t buf[] = {0x55, 0x55, 0x05, 55, 0x02, 0x00, 0x00};
     hw_encoder_motor.speed_1 = -new_speed1;
     hw_encoder_motor.speed_2 = -new_speed2;
@@ -260,20 +248,22 @@ void robotrun::hw_encoder_motor_set_speed_base(float new_speed1, float new_speed
     ets_serial.write(buf,7);
 }
 
-void robotrun::hw_encoder_motor_set_speed(uint8_t motorid, float new_speed)
-{
-    /* 输入速度为单位为RPM，转化为RPS， 转化为PPS 转化为 PP10MS(The input speed is in RPM units, converted to RPS, then to PPS, and finally to PP10MS.) */
+void robotrun::hw_encoder_motor_set_speed(uint8_t motorid, float new_speed){
+    //The input speed is in RPM units, converted to RPS, then to PPS, and finally to PP10MS.
     float new_speed1 = 0, new_speed2 = 0;
     new_speed1 = -hw_encoder_motor.speed_1;
     new_speed2 = -hw_encoder_motor.speed_2;
-    if (motorid == 0) {
+    if(motorid == 0){
         new_speed1 = new_speed;
         new_speed2 = new_speed1;
-    } else if (motorid == 1) {
+    }
+    else if(motorid == 1){
         new_speed1 = new_speed;
-    } else if (motorid == 2) {
+    }
+    else if(motorid == 2){
         new_speed2 = new_speed;
-    } else {
+    }
+    else{
     }
     hw_encoder_motor_set_speed_base(new_speed1, new_speed2);
 }
@@ -300,21 +290,20 @@ void robotrun::hw_reset_encoder_counter(uint8_t motorid)
     }
 }
 
-//获取2个轮子速度 (Acquire the speed of two wheels)
+//Acquire the speed of two wheels
 void robotrun::hw_encoder_motor_get_speed(float items[])
 {
     items[0] = -hw_encoder_motor.speed_1;
     items[1] = -hw_encoder_motor.speed_2;
 }
 
-//获取编码器计数值（即转过的圈数）(Get the encoder count value (i.e., the number of rotations).)
+//Get the encoder count value (i.e., the number of rotations).
 void robotrun::hw_encoder_motor_get_count(float items[])
 {
     uint8_t buf[] = {0x55, 0x55, 0x03, 55, 0x03};
     hw_encoder_motor.counter_updated = false;
     ets_serial.write(buf,5);
     delay(30);
-
     items[0] = (hw_encoder_motor.count_1 - hw_encoder_motor.count_base_1) / hw_encoder_motor.pulse_p_r;
     items[1] = (hw_encoder_motor.count_2 - hw_encoder_motor.count_base_2) / hw_encoder_motor.pulse_p_r;
 }
@@ -356,17 +345,14 @@ void robotrun::hw_encoder_motor_stop(uint8_t motorid)
     ets_serial.write(buf,7);
 }
 
-float robotrun::hw_encoder_motor_turn_base(float speed, float angle) //speed单位 度每秒 (Speed unit: degree/second)
-{
+float robotrun::hw_encoder_motor_turn_base(float speed, float angle){ //Speed unit: degree/second
     float motor_speed = angle > 0 ? 0.2988f * speed : -0.298f * speed;
-    float time = (float)(fabs(angle)) / speed * 1000.0f; // 单位 ms (unit: ms)
+    float time = (float)(fabs(angle)) / speed * 1000.0f; //unit: ms
     hw_encoder_motor_set_speed_base(motor_speed, -motor_speed);
     return time;
 }
 
-//以speed度每秒的速度转angle角度(Rotate at a 'speed' degrees per second to specific 'angle')
-void robotrun::hw_encoder_motor_turn(float speed, float angle)
-{
+void robotrun::hw_encoder_motor_turn(float speed, float angle){          //Rotate at a 'speed' degrees per second to specific 'angle'
     float speed_1 = speed;
     float angle_1 = angle;
     float time = hw_encoder_motor_turn_base(speed_1, angle_1);
@@ -375,7 +361,7 @@ void robotrun::hw_encoder_motor_turn(float speed, float angle)
 
 
 
-//读取A、B按键值，id参数：1——A按键 ， 2——B按键(Read values of A and B buttons, with ID parameters: 1——A button, 2——B button)
+//Read values of A and B buttons, with ID parameters: 1——A button, 2——B button
 bool robotrun::read_button(uint8_t id)
 {
   if(id == 1)

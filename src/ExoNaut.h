@@ -76,6 +76,11 @@ typedef struct __ir_obj_t {
 	QueueHandle_t ir_queue;
 } ir_obj_t;
 
+typedef struct __ir_event_t {
+    uint16_t ir_code;
+    int8_t event;
+} ir_event_t;
+
 typedef struct __encoder_motor_obj_t {
 	float pulse_p_r;
 	uint8_t motor_type;
@@ -88,10 +93,6 @@ typedef struct __encoder_motor_obj_t {
 	int32_t count_base_2;
 } encoder_motor_obj_t;
 
-extern uart2_obj_t uart2_obj;
-extern encoder_motor_obj_t encoder_motor;
-
-
 
 
 
@@ -100,16 +101,16 @@ class exonaut{
 	public:
 		//Motor control
 		void begin(void);
-		void set_motor_type(uint8_t motortype);
-		void set_motor_speed(int m1, int m2);							//this is the set_motor_speed function
-		void encoder_motor_set_speed(uint8_t motorid, float new_speed);	//set speed
-		void hw_encoder_motor_get_speed(float items[]);					//get speed of both motors
-		void hw_encoder_motor_stop(uint8_t motorid);					//stop the motorid's encoder motor
-		void hw_encoder_motor_turn(float speed, float angle);			//rotate angle in degrees per second
+		void set_motor_speed(int m1, int m2);								//set normal motor speed //this is the set_motor_speed function
+		void set_motor_type(uint8_t motortype);								//set encoder motor type //this is the hw_encoder_motor_set_motor_type function
+		void encoder_motor_set_speed(uint8_t motorid, float new_speed);		//set speed //this is the hw_encoder_motor_set_speed function
+		void encoder_motor_get_speed(float items[]);						//get speed of both motors
+		void encoder_motor_stop(uint8_t motorid);							//stop the motorid's encoder motor
+		void encoder_motor_turn(float speed, float angle);					//rotate angle in degrees per second
 		
 		//Encoder Control
-		void reset_encoder_counter(uint8_t motorid);					//Reset the encoder count value of motorid's encoder motor (ie set to 0)
-		void encoder_motor_get_count(int32_t items[]);					//Get the encoder count value (ie the number of turns)
+		void reset_encoder_counter(uint8_t motorid);						//Reset the encoder count value of motorid's encoder motor (ie set to 0)
+		void get_encoder_count(int32_t items[]);							//Get the encoder count value (ie the number of turns)
 
 		//LED control
 		void setColor(uint16_t n, uint8_t r, uint8_t g, uint8_t b);
@@ -117,21 +118,15 @@ class exonaut{
 		void show(void);
 		void clear(void);
 
-		
 	private:
 		TaskHandle_t rx_task_handle;
-		float encoder_motor_turn_base(float speed, float angle); 
-		//void encoder_motor_set_speed_base(float new_speed1, float new_speed2);		
+		float encoder_motor_turn_base(float speed, float angle); 		
 		void encoder_motor_set_speed_base(float new_speed1, float new_speed2);		//this is the hw_encoder_motor_set_speed_base function
-		
-		
-		//bool wireWriteByte(uint8_t addr, uint8_t val);
-		//bool wireWriteDataArray(uint8_t addr, uint8_t reg,uint8_t *val,unsigned int len);
-		//int wireReadDataArray(uint8_t addr, uint8_t reg, uint8_t *val, unsigned int len);
-
 };
 
 
 extern Adafruit_NeoPixel pixels;
+extern uart2_obj_t uart2_obj;
+extern encoder_motor_obj_t encoder_motor;
 
 #endif //__EXONAUT_h

@@ -1,9 +1,3 @@
-/**************************************************************
- * company：深圳市幻尔科技有限公司
- * file：WonderCam.h
- * date&&author：20231218 && CuZn
- * brief：AINova板载 ESP32与STM32通讯模块
-**************************************************************/
 #ifndef ROBOTRUN_H_
 #define ROBOTRUN_H_
 
@@ -26,6 +20,11 @@ typedef struct __hw_ir_obj_t {
     QueueHandle_t ir_queue;
 } hw_ir_obj_t;
 
+typedef struct __hw_ir_event_t {
+    uint16_t ir_code;
+    int8_t event;
+} hw_ir_event_t;
+
 typedef struct __hw_encoder_motor_obj_t {
     float pulse_p_r;
     uint8_t motor_type;
@@ -41,13 +40,7 @@ typedef struct __hw_encoder_motor_obj_t {
 extern hw_uart2_obj_t hw_uart2_obj;
 extern hw_encoder_motor_obj_t hw_encoder_motor;
 
-class robotrun
-{
-  private:
-    //speed单位 度每秒
-    float hw_encoder_motor_turn_base(float speed, float angle); 
-    void hw_encoder_motor_set_speed_base(float new_speed1, float new_speed2);
-    TaskHandle_t hw_rx_task_handle;
+class robotrun{
   public:
     void begin(void);
 
@@ -63,7 +56,10 @@ class robotrun
 
     //A & B Buttons
     bool read_button(uint8_t id);                                         //Read the A and B button values, id parameter: 1——A button, 2——B button
+
+  private:
+    float hw_encoder_motor_turn_base(float speed, float angle); 
+    void hw_encoder_motor_set_speed_base(float new_speed1, float new_speed2);
+    TaskHandle_t hw_rx_task_handle;
 };
-
-
 #endif //ROBOTRUN_H_

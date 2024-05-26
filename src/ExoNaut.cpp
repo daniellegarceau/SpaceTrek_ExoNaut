@@ -1,3 +1,15 @@
+/*
+*ExoNaut.h
+*
+*Author:	Andrew Gafford
+*Email:		agafford@spacetrek.com
+*Date:		May 20th, 2024
+*
+*This library is for controlling the Space Trek ExoNaut Robot.  It provides
+*control of the drive motors and CoreX components.
+*
+*/
+
 #include <Arduino.h>
 #include "ExoNaut.h"
 #include <Wire.h>
@@ -8,19 +20,55 @@
 Adafruit_NeoPixel pixels(NUM_PIXELS, NEO_PIXEL_PIN, NEO_GRB + NEO_KHZ800);
 
 
-//bool low_power_flag;
+bool low_power_flag;
 bool action_finish = true;
 
+uart2_obj_t uart2_obj = {					// create uart2 instance
+	.initilized = false,
+	.volt = -1,
+	//.version[0] = "\0",					//why does this cause error?
+};
 
+ir_obj_t ir = {								// IR remote instance
+	.ir_key = 0,
+	.ir_queue = NULL,
+};
+
+encoder_motor_obj_t  encoder_motor = {		//encode motor object instance
+	.pulse_p_r = PULSE_COUNT,
+	.motor_type = 1,
+	.counter_updated = false,
+	.speed_1 = 0,
+	.speed_2 = 0,
+	.count_1 = 0,
+	.count_2 = 0,
+	.count_base_1 = 0,
+	.count_base_2 = 0,
+};
+
+inline uint8_t hex2int(uint8_t ch){
+	if(ch >= '0' && ch <= '9'){
+		return (ch - '0');
+	}
+	if(ch >= 'A' && ch <= 'F'){
+		return (ch - 'A' + 10);
+	}
+	if(ch >= 'a' && ch <= 'f'){
+		return (ch - 'a' + 10);
+	}
+	return (uint8_t) -1;
+}
+
+#define HEX_TO_INT(high, low)   ((uint8_t)((0xF0 & (((hex2int((high))) << 4))) | (0x0F & (hex2int((low))))))
 
 void exonaut::begin(void){
 	pinMode(BUTTON_A_PIN,INPUT);
 	pinMode(BUTTON_B_PIN,INPUT);
 	ets_serial.begin(115200);
 	xTaskCreatePinnedToCore(rx_task, "rx_task", 3072, NULL, 2, &rx_task_handle, 0);
-	//set_motor_speed(0, 0);
-	//encoder_motor_set_speed_base(0, 0);
-	//reset_encoder_counter(0);
+	set_motor_speed(0, 0);
+	encoder_motor_set_speed_base(0, 0);
+	reset_encoder_counter(0);
 	this->set_motor_type(1);
 	
 	Wire.begin();
@@ -33,28 +81,94 @@ void exonaut::begin(void){
 	pixels.show();
 }
 
+void exonaut::set_motor_speed(int m1, int m2){
+    uint8_t buf[6] = {0x55, 0x55, 0x04, 0x32, 0x00, 0x00};
+    m1 = m1 > 100 ? 100 : m1;
+    m2 = m2 > 100 ? 100 : m2;
+    m1 = m1 < -100 ? -100 : m1;
+    m2 = m2 < -100 ? -100 : m2;
+    m1 = -m1;
+    m2 = -m2;
+    buf[4] = m2 & 0xFF;
+    buf[5] = m1 & 0xFF;
+    ets_serial.write(buf,6);
+}
+
 void exonaut::set_motor_type(uint8_t motortype){
-    if (motortype == 1 || motortype == 2) {
-        uint8_t buf[] = {0x55, 0x55, 0x04, 55, 1, 0};
-        buf[5] = motortype;
-        ets_serial.write(buf,6);
-		
-		switch (motortype){
-			case 1:{
+	if(motortype == 1 || motortype == 2){
+		uint8_t buf[] = {0x55, 0x55, 0x04, 55, 1, 0};
+		buf[5] = motortype;
+		ets_serial.write(buf,6);
+		switch(motortype){
+			case 1:
 				encoder_motor.pulse_p_r = PULSE_COUNT;
 				break;
-			}
-			case 2:{
+			case 2:
 				encoder_motor.pulse_p_r = 1400 + 31;
 				break;
-			}
-			default:{
+			default:
 				encoder_motor.pulse_p_r = PULSE_COUNT;
 				break;
-			}
 		}
-
 	}
+}
+
+void exonaut::encoder_motor_set_speed(uint8_t motorid, float new_speed){
+    //The input speed is in RPM units, converted to RPS, then to PPS, and finally to PP10MS.
+    float new_speed1 = 0, new_speed2 = 0;
+    new_speed1 = -encoder_motor.speed_1;
+    new_speed2 = -encoder_motor.speed_2;
+    if(motorid == 0){
+        new_speed1 = new_speed;
+        new_speed2 = new_speed1;
+    }
+    else if(motorid == 1){
+        new_speed1 = new_speed;
+    }
+    else if(motorid == 2){
+        new_speed2 = new_speed;
+    }
+    else{
+		//make it output compile error message that motor id needs to be 0, 1 or 2
+    }
+    encoder_motor_set_speed_base(new_speed1, new_speed2);
+}
+
+void exonaut::encoder_motor_get_speed(float items[]){		//get both motors speeds
+    items[0] = -encoder_motor.speed_1;
+    items[1] = -encoder_motor.speed_2;
+}
+
+void exonaut::encoder_motor_stop(uint8_t motorid){
+	uint8_t buf[] = {0x55, 0x55, 0x05, 55, 0x02, 0x00, 0x00};
+	float new_speed1 = -encoder_motor.speed_1;
+	float new_speed2 = -encoder_motor.speed_2;
+	new_speed1 = new_speed1 / 55 * 90;				//1:55 -> 1:90
+	new_speed2 = new_speed2 / 55 * 90;				//1:55 -> 1:90
+
+	float rps1 = (float)(-new_speed1) / 60.0f;
+	float rps2 = (float)(-new_speed2) / 60.0f;
+	float pps1 = rps1 * 680;
+	float pps2 = rps2 * 680;
+	buf[5] = (uint8_t)((int)round(pps1 * 0.01f));
+	buf[6] = (uint8_t)((int)round(pps2 * 0.01f));
+	switch(motorid){
+		case 1:
+			encoder_motor.speed_1 = 0;
+			buf[5] = 0;
+			break;
+		case 2:
+			encoder_motor.speed_2 = 0;
+			buf[6] = 0;
+			break;
+		default:
+			encoder_motor.speed_1 = 0;
+			encoder_motor.speed_2 = 0;
+			buf[5] = 0;
+			buf[6] = 0;
+			break;
+	}
+	ets_serial.write(buf,7);
 }
 
 void exonaut::encoder_motor_set_speed_base(float new_speed1, float new_speed2){		//this is the hw_encoder_motor_set_speed_base function
@@ -71,30 +185,49 @@ void exonaut::encoder_motor_set_speed_base(float new_speed1, float new_speed2){	
     buf[5] = (uint8_t)((int)round(pps1 * 0.01f));
     buf[6] = (uint8_t)((int)round(pps2 * 0.01f));
     ets_serial.write(buf,7);
-    //return 0;
 }
 
-float exonaut::encoder_motor_turn_base(float speed, float angle){					//Speed unit: degree/second
+float exonaut::encoder_motor_turn_base(float speed, float angle){			//Speed unit: degree/second
 	float motor_speed = angle > 0 ? 0.2988f * speed : -0.298f * speed;
-	float time = (float)(fabs(angle)) / speed * 1000.0f; // 单位 ms (unit: ms)
+	float time = (float)(fabs(angle)) / speed * 1000.0f; 					//unit: ms
 	encoder_motor_set_speed_base(motor_speed, -motor_speed);
 	return time;
 }
 
-void exonaut::set_motor_speed(int m1, int m2){				//this is the set_motor_speed function
-    uint8_t buf[6] = {0x55, 0x55, 0x04, 0x32, 0x00, 0x00};
-    m1 = m1 > 100 ? 100 : m1;
-    m2 = m2 > 100 ? 100 : m2;
-    m1 = m1 < -100 ? -100 : m1;
-    m2 = m2 < -100 ? -100 : m2;
-    m1 = -m1;
-    m2 = -m2;
-    buf[4] = m2 & 0xFF;
-    buf[5] = m1 & 0xFF;
-    ets_serial.write(buf,6);
+void exonaut::encoder_motor_turn(float speed, float angle){				//Rotate at a 'speed' degrees per second to specific 'angle'
+    float speed_1 = speed;
+    float angle_1 = angle;
+    float time = encoder_motor_turn_base(speed_1, angle_1);
+    delay((int)time);
+}
+
+void exonaut::reset_encoder_counter(uint8_t motorid){
+	uint8_t buf[] = {0x55, 0x55, 0x03, 55, 0x03};
+	ets_serial.write(buf,5);
+	delay(30);
+	switch(motorid){
+		case 1:
+			encoder_motor.count_base_1 = encoder_motor.count_1;
+			break;
+		case 2:
+			encoder_motor.count_base_2 = encoder_motor.count_2;
+			break;
+		default:
+			encoder_motor.count_base_1 = encoder_motor.count_1;
+			encoder_motor.count_base_2 = encoder_motor.count_2;
+			break;
+    }
 }
 
 
+void exonaut::get_encoder_count(float items[]){			//Get the encoder count value (i.e., the number of rotations).
+	uint8_t buf[] = {0x55, 0x55, 0x03, 55, 0x03};
+	encoder_motor.counter_updated = false;
+	ets_serial.write(buf,5);
+	delay(30);
+	items[0] = (encoder_motor.count_1 - encoder_motor.count_base_1) / encoder_motor.pulse_p_r;
+	items[1] = (encoder_motor.count_2 - encoder_motor.count_base_2) / encoder_motor.pulse_p_r;
+}
 
 
 
@@ -126,60 +259,6 @@ void exonaut::show(void){
 void exonaut::clear(void){
 	pixels.clear();
 	pixels.show();
-}
-
-
-
-
-
-
-
-
-
-
-typedef struct __ir_event_t {
-    uint16_t ir_code;
-    int8_t event;
-} ir_event_t;
-
-// create uart2 instance
-uart2_obj_t uart2_obj = {
-    .initilized = false,
-    .volt = -1,
-    // .version[0] = "\0",
-};
-
-// IR remote instance
-ir_obj_t ir = {
-    .ir_key = 0,
-    .ir_queue = NULL,
-};
-
-//encode motor object instance
-encoder_motor_obj_t  encoder_motor = {
-    .pulse_p_r = PULSE_COUNT,
-    .motor_type = 1,
-    .counter_updated = false,
-    .speed_1 = 0,
-    .speed_2 = 0,
-    .count_1 = 0,
-    .count_2 = 0,
-    .count_base_1 = 0,
-    .count_base_2 = 0,
-};
-
-inline uint8_t hex2int(uint8_t ch)
-{//rx_task
-    if (ch >= '0' && ch <= '9') {
-        return (ch - '0');
-    }
-    if (ch >= 'A' && ch <= 'F') {
-        return (ch - 'A' + 10);
-    }
-    if (ch >= 'a' && ch <= 'f') {
-        return (ch - 'a' + 10);
-    }
-    return (uint8_t) -1;
 }
 
 
@@ -336,50 +415,3 @@ void rx_task(void *pvParameter){
 
 
 
-
-
-
-
-
-/*
-//Wire write byte
-bool exonaut::wireWriteByte(uint8_t addr, uint8_t val){
-	Wire.beginTransmission(addr);
-	Wire.write(val);
-	if(Wire.endTransmission() != 0){
-		return false;
-	}
-	return true;
-}
-
-//Wire write multiple bytes
-bool exonaut::wireWriteDataArray(uint8_t addr, uint8_t reg,uint8_t *val,unsigned int len){
-	unsigned int i;
-	Wire.beginTransmission(addr);
-	Wire.write(reg);
-	for(i = 0; i < len; i++){
-		Wire.write(val[i]);
-	}
-	if(Wire.endTransmission() != 0){
-		return false;
-	}
-	return true;
-}
-
-//Read specified length of bytes
-int exonaut::wireReadDataArray(uint8_t addr, uint8_t reg, uint8_t *val, unsigned int len){
-	unsigned char i = 0;  
-	if(!wireWriteByte(addr, reg)){				// Indicate which register we want to read from
-		return -1;
-	}
-	Wire.requestFrom(addr, len, false);
-	while(Wire.available()){					// Read block data
-		if(i >= len){
-			return -1;
-		}
-		val[i] = Wire.read();
-		i++;
-    }    
-    return i;
-}
-*/
