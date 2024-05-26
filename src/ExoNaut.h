@@ -72,20 +72,20 @@ typedef struct __uart_obj_t {
 } uart2_obj_t;
 
 typedef struct __ir_obj_t {
-    uint16_t ir_key;
-    QueueHandle_t ir_queue;
+	uint16_t ir_key;
+	QueueHandle_t ir_queue;
 } ir_obj_t;
 
 typedef struct __encoder_motor_obj_t {
-    float pulse_p_r;
-    uint8_t motor_type;
-    bool counter_updated;
-    float speed_1;
-    float speed_2;
-    int32_t count_1;
-    int32_t count_2;
-    int32_t count_base_1;
-    int32_t count_base_2;
+	float pulse_p_r;
+	uint8_t motor_type;
+	bool counter_updated;
+	float speed_1;
+	float speed_2;
+	int32_t count_1;
+	int32_t count_2;
+	int32_t count_base_1;
+	int32_t count_base_2;
 } encoder_motor_obj_t;
 
 extern uart2_obj_t uart2_obj;
@@ -101,12 +101,15 @@ class exonaut{
 		//Motor control
 		void begin(void);
 		void set_motor_type(uint8_t motortype);
-		int set_motor_speed(float new_speed1, float new_speed2);
-		void set_motor_power(int m1, int m2);
+		void set_motor_speed(int m1, int m2);							//this is the set_motor_speed function
+		void encoder_motor_set_speed(uint8_t motorid, float new_speed);	//set speed
+		void hw_encoder_motor_get_speed(float items[]);					//get speed of both motors
+		void hw_encoder_motor_stop(uint8_t motorid);					//stop the motorid's encoder motor
+		void hw_encoder_motor_turn(float speed, float angle);			//rotate angle in degrees per second
 		
 		//Encoder Control
 		void reset_encoder_counter(uint8_t motorid);					//Reset the encoder count value of motorid's encoder motor (ie set to 0)
-		void encoder_motor_get_count(int32_t items[]);				//Get the encoder count value (ie the number of turns)
+		void encoder_motor_get_count(int32_t items[]);					//Get the encoder count value (ie the number of turns)
 
 		//LED control
 		void setColor(uint16_t n, uint8_t r, uint8_t g, uint8_t b);
@@ -117,6 +120,11 @@ class exonaut{
 		
 	private:
 		TaskHandle_t rx_task_handle;
+		float encoder_motor_turn_base(float speed, float angle); 
+		//void encoder_motor_set_speed_base(float new_speed1, float new_speed2);		
+		void encoder_motor_set_speed_base(float new_speed1, float new_speed2);		//this is the hw_encoder_motor_set_speed_base function
+		
+		
 		//bool wireWriteByte(uint8_t addr, uint8_t val);
 		//bool wireWriteDataArray(uint8_t addr, uint8_t reg,uint8_t *val,unsigned int len);
 		//int wireReadDataArray(uint8_t addr, uint8_t reg, uint8_t *val, unsigned int len);

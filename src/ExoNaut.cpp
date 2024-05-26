@@ -7,11 +7,20 @@
 
 Adafruit_NeoPixel pixels(NUM_PIXELS, NEO_PIXEL_PIN, NEO_GRB + NEO_KHZ800);
 
+
+//bool low_power_flag;
+bool action_finish = true;
+
+
+
 void exonaut::begin(void){
 	pinMode(BUTTON_A_PIN,INPUT);
 	pinMode(BUTTON_B_PIN,INPUT);
 	ets_serial.begin(115200);
 	xTaskCreatePinnedToCore(rx_task, "rx_task", 3072, NULL, 2, &rx_task_handle, 0);
+	//set_motor_speed(0, 0);
+	//encoder_motor_set_speed_base(0, 0);
+	//reset_encoder_counter(0);
 	this->set_motor_type(1);
 	
 	Wire.begin();
@@ -29,11 +38,32 @@ void exonaut::set_motor_type(uint8_t motortype){
         uint8_t buf[] = {0x55, 0x55, 0x04, 55, 1, 0};
         buf[5] = motortype;
         ets_serial.write(buf,6);
-    }
+		
+		switch (motortype){
+			case 1:{
+				encoder_motor.pulse_p_r = PULSE_COUNT;
+				break;
+			}
+			case 2:{
+				encoder_motor.pulse_p_r = 1400 + 31;
+				break;
+			}
+			default:{
+				encoder_motor.pulse_p_r = PULSE_COUNT;
+				break;
+			}
+		}
+
+	}
 }
 
-int exonaut::set_motor_speed(float new_speed1, float new_speed2){
+void exonaut::encoder_motor_set_speed_base(float new_speed1, float new_speed2){		//this is the hw_encoder_motor_set_speed_base function
     uint8_t buf[] = {0x55, 0x55, 0x05, 55, 0x02, 0x00, 0x00};
+	encoder_motor.speed_1 = -new_speed1;
+	encoder_motor.speed_2 = -new_speed2;
+	new_speed1 = new_speed1 / 55 * 90;			//1:55 -> 1:90
+	new_speed2 = new_speed2 / 55 * 90;			//1:55 -> 1:90
+	
     float rps1 = (float)(-new_speed1) / 60.0f;
     float rps2 = (float)(-new_speed2) / 60.0f;
     float pps1 = rps1 * 680;
@@ -41,10 +71,17 @@ int exonaut::set_motor_speed(float new_speed1, float new_speed2){
     buf[5] = (uint8_t)((int)round(pps1 * 0.01f));
     buf[6] = (uint8_t)((int)round(pps2 * 0.01f));
     ets_serial.write(buf,7);
-    return 0;
+    //return 0;
 }
 
-void exonaut::set_motor_power(int m1, int m2){
+float exonaut::encoder_motor_turn_base(float speed, float angle){					//Speed unit: degree/second
+	float motor_speed = angle > 0 ? 0.2988f * speed : -0.298f * speed;
+	float time = (float)(fabs(angle)) / speed * 1000.0f; // 单位 ms (unit: ms)
+	encoder_motor_set_speed_base(motor_speed, -motor_speed);
+	return time;
+}
+
+void exonaut::set_motor_speed(int m1, int m2){				//this is the set_motor_speed function
     uint8_t buf[6] = {0x55, 0x55, 0x04, 0x32, 0x00, 0x00};
     m1 = m1 > 100 ? 100 : m1;
     m2 = m2 > 100 ? 100 : m2;
@@ -56,6 +93,19 @@ void exonaut::set_motor_power(int m1, int m2){
     buf[5] = m1 & 0xFF;
     ets_serial.write(buf,6);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 void exonaut::setColor(uint16_t n, uint8_t r, uint8_t g, uint8_t b){
@@ -119,7 +169,7 @@ encoder_motor_obj_t  encoder_motor = {
 };
 
 inline uint8_t hex2int(uint8_t ch)
-{rx_task
+{//rx_task
     if (ch >= '0' && ch <= '9') {
         return (ch - '0');
     }
