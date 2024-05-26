@@ -110,7 +110,7 @@ class exonaut{
 		
 		//Encoder Control
 		void reset_encoder_counter(uint8_t motorid);						//Reset the encoder count value of motorid's encoder motor (ie set to 0)
-		void get_encoder_count(int32_t items[]);							//Get the encoder count value (ie the number of turns)
+		void get_encoder_count(float items[]);							//Get the encoder count value (ie the number of turns)
 
 		//LED control
 		void setColor(uint16_t n, uint8_t r, uint8_t g, uint8_t b);

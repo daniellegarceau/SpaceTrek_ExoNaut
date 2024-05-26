@@ -16,6 +16,7 @@
 
 #include <Adafruit_NeoPixel.h>
 
+void rx_task(void *pvParameter);
 
 Adafruit_NeoPixel pixels(NUM_PIXELS, NEO_PIXEL_PIN, NEO_GRB + NEO_KHZ800);
 
