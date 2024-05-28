@@ -105,12 +105,12 @@ class exonaut{
 		void set_motor_type(uint8_t motortype);								//set encoder motor type //this is the hw_encoder_motor_set_motor_type function
 		void encoder_motor_set_speed(uint8_t motorid, float new_speed);		//set speed //this is the hw_encoder_motor_set_speed function
 		void encoder_motor_get_speed(float items[]);						//get speed of both motors
-		void encoder_motor_stop(uint8_t motorid);							//stop the motorid's encoder motor
+		void stop_motor(uint8_t motorid);									//stop the motorid's encoder motor
 		void encoder_motor_turn(float speed, float angle);					//rotate angle in degrees per second
 		
 		//Encoder Control
 		void reset_encoder_counter(uint8_t motorid);						//Reset the encoder count value of motorid's encoder motor (ie set to 0)
-		void get_encoder_count(float items[]);							//Get the encoder count value (ie the number of turns)
+		void get_encoder_count(float items[]);								//Get the encoder count value (ie the number of turns)
 
 		//LED control
 		void setColor(uint16_t n, uint8_t r, uint8_t g, uint8_t b);

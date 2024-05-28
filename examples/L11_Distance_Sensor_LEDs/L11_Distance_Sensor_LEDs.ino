@@ -1,11 +1,23 @@
 /**************************************************
  * L11_Distance_Sensor_LEDs.ino
  * An example program that shows how to change the LEDs on the distance sensor
-
  *
  * Author: Andrew Gafford
  * Email: agafford@spacetrek.com
  * Date: May 20th, 2024
+ * 
+ * 
+ * Commands:
+ * exonaut robot;                           //This command sets up the exonaut robot object.  exonaut is the class and robot is the name given to the object
+ *                                          //This is the object that handles all of the motor commands and the features on the CoreX controller.
+ * 
+ * robot.begin();                           //This command initializes or begins the things in the robot object.
+ *
+ * ultrasonic us;                           //This command sets up the ultrasonic us object. ultrasonic is the class and us is the name given to the object
+ *                                          //This is the object that handles all of the ultrasonic distance sensor features
+ *
+ * us.getDistance()                         //This command returns the distance from an object detected by the sensor in mm
+ *
 **************************************************/
 
 #include <ExoNaut.h>                    //include the ExoNaut library
@@ -16,11 +28,12 @@ ultrasonic us;                          //declare the ultrasonic object name us
 
 void setup(){                           //the setup() function runs once
   robot.begin();                        //start the robot object
-  robot.set_motor_speed(0,0);           //set the speed of both motors to ZERO
-  us.color(0, 0, 0, 0, 0, 0);           //set LED1 to r=0, g=0, b=0 (OFF) and LED2 to r=0, g=0, b=0 (OFF)
-  delay(1500);                          //wait 1.5 seconds
 }                                       //end of the setup() function
 
 void loop(){                            //the loop() function runs forever in a loop
+  us.color(150, 0, 150, 150, 0, 150);   //set LED1 to r=150, g=0, b=150 and LED2 to r=150, g=0, b=150
+  delay(1500);                          //wait 1.5 seconds
   us.color(150, 0, 0, 0, 150, 0);       //set LED1 to red=150, green=0, blue=0 and LED2 to red=0, green = 150, blue=0
+  delay(1500);                          //wait 1.5 seconds
 }
+

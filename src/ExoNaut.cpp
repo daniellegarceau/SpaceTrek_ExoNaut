@@ -66,11 +66,16 @@ void exonaut::begin(void){
 	pinMode(BUTTON_A_PIN,INPUT);
 	pinMode(BUTTON_B_PIN,INPUT);
 	ets_serial.begin(115200);
+	delay(100);
 	xTaskCreatePinnedToCore(rx_task, "rx_task", 3072, NULL, 2, &rx_task_handle, 0);
-	set_motor_speed(0, 0);
+	//set_motor_speed(0, 0);
+	delay(100);
 	encoder_motor_set_speed_base(0, 0);
+	delay(100);
 	reset_encoder_counter(0);
+	delay(100);
 	this->set_motor_type(1);
+	delay(100);
 	
 	Wire.begin();
 	Wire.setClock(90000);
@@ -80,19 +85,22 @@ void exonaut::begin(void){
 		pixels.setPixelColor(i, pixels.Color(0, 0, 0));
 	}
 	pixels.show();
+	delay(500);
 }
 
 void exonaut::set_motor_speed(int m1, int m2){
-    uint8_t buf[6] = {0x55, 0x55, 0x04, 0x32, 0x00, 0x00};
-    m1 = m1 > 100 ? 100 : m1;
-    m2 = m2 > 100 ? 100 : m2;
-    m1 = m1 < -100 ? -100 : m1;
-    m2 = m2 < -100 ? -100 : m2;
-    m1 = -m1;
-    m2 = -m2;
-    buf[4] = m2 & 0xFF;
-    buf[5] = m1 & 0xFF;
-    ets_serial.write(buf,6);
+    // uint8_t buf[6] = {0x55, 0x55, 0x04, 0x32, 0x00, 0x00};
+    // m1 = m1 > 100 ? 100 : m1;
+    // m2 = m2 > 100 ? 100 : m2;
+    // m1 = m1 < -100 ? -100 : m1;
+    // m2 = m2 < -100 ? -100 : m2;
+    // m1 = -m1;
+    // m2 = -m2;
+    // buf[4] = m2 & 0xFF;
+    // buf[5] = m1 & 0xFF;
+    // ets_serial.write(buf,6);
+	
+	encoder_motor_set_speed_base(float(m1), float(m2));
 }
 
 void exonaut::set_motor_type(uint8_t motortype){
@@ -116,22 +124,24 @@ void exonaut::set_motor_type(uint8_t motortype){
 
 void exonaut::encoder_motor_set_speed(uint8_t motorid, float new_speed){
     //The input speed is in RPM units, converted to RPS, then to PPS, and finally to PP10MS.
-    float new_speed1 = 0, new_speed2 = 0;
-    new_speed1 = -encoder_motor.speed_1;
-    new_speed2 = -encoder_motor.speed_2;
-    if(motorid == 0){
-        new_speed1 = new_speed;
-        new_speed2 = new_speed1;
-    }
-    else if(motorid == 1){
-        new_speed1 = new_speed;
-    }
-    else if(motorid == 2){
-        new_speed2 = new_speed;
-    }
-    else{
-		//make it output compile error message that motor id needs to be 0, 1 or 2
-    }
+    float new_speed1 = 0;
+	float new_speed2 = 0;
+	switch(motorid){
+		case 0:
+			new_speed1 = new_speed;
+			new_speed2 = new_speed;
+			break;
+		case 1:
+			new_speed1 = new_speed;
+			new_speed2 = -encoder_motor.speed_2;
+			break;
+		case 2:
+			new_speed1 = -encoder_motor.speed_1;
+			new_speed2 = new_speed;
+			break;
+		default:
+			break;
+	}
     encoder_motor_set_speed_base(new_speed1, new_speed2);
 }
 
@@ -140,7 +150,7 @@ void exonaut::encoder_motor_get_speed(float items[]){		//get both motors speeds
     items[1] = -encoder_motor.speed_2;
 }
 
-void exonaut::encoder_motor_stop(uint8_t motorid){
+void exonaut::stop_motor(uint8_t motorid){
 	uint8_t buf[] = {0x55, 0x55, 0x05, 55, 0x02, 0x00, 0x00};
 	float new_speed1 = -encoder_motor.speed_1;
 	float new_speed2 = -encoder_motor.speed_2;
@@ -195,7 +205,7 @@ float exonaut::encoder_motor_turn_base(float speed, float angle){			//Speed unit
 	return time;
 }
 
-void exonaut::encoder_motor_turn(float speed, float angle){				//Rotate at a 'speed' degrees per second to specific 'angle'
+void exonaut::encoder_motor_turn(float speed, float angle){					//Rotate at a 'speed' degrees per second to specific 'angle'
     float speed_1 = speed;
     float angle_1 = angle;
     float time = encoder_motor_turn_base(speed_1, angle_1);
@@ -230,18 +240,6 @@ void exonaut::get_encoder_count(float items[]){			//Get the encoder count value 
 	items[1] = (encoder_motor.count_2 - encoder_motor.count_base_2) / encoder_motor.pulse_p_r;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
 void exonaut::setColor(uint16_t n, uint8_t r, uint8_t g, uint8_t b){
 	pixels.setPixelColor(n, pixels.Color(r, g, b));
 }
@@ -261,14 +259,6 @@ void exonaut::clear(void){
 	pixels.clear();
 	pixels.show();
 }
-
-
-
-
-
-
-
-
 
 void rx_task(void *pvParameter){
 	static uint8_t rx_buf[64];
@@ -406,13 +396,4 @@ void rx_task(void *pvParameter){
 		delay(20);
 	}
 }
-
-
-
-
-
-
-
-
-
 

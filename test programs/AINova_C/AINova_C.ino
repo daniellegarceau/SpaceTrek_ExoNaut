@@ -1,8 +1,8 @@
 /**************************************************************
- * company：深圳市幻尔科技有限公司 Hiwonder
+ * company：Hiwonder
  * date&&author：20231220 && CuZn
- * description：AiNova迷宫穿越 Maze Crossing
- * functions: Pressing button A will make the car move forward for 4 seconds, while pressing button B will make it move backward.
+ * description：AiNova test program
+ * functions: Pressing button A will make the car move forward for 1 second, while pressing button B will make it move backward.
 **************************************************************/
 #include <Arduino.h>
 #include "robotrun.h"

@@ -77,8 +77,8 @@ void ultrasonic::color(uint8_t r1, uint8_t g1, uint8_t b1, uint8_t r2, uint8_t g
 	uint8_t RGB[6];
 	uint8_t value = RGB_WORK_SIMPLE_MODE;
 	wireWriteDataArray(ULTRASOUND_I2C_ADDR, RGB_WORK_MODE_REG,&value,1);
-	RGB[0] = r1; RGB[1] = g1; RGB[2] = b1;											//RGB1
-	RGB[3] = r2; RGB[4] = g2; RGB[5] = b2;											//RGB2
+	RGB[0] = r1; RGB[1] = g1; RGB[2] = b1;												//RGB1
+	RGB[3] = r2; RGB[4] = g2; RGB[5] = b2;												//RGB2
 	wireWriteDataArray(ULTRASOUND_I2C_ADDR, RGB1_R_REG,RGB,6);							//Send color values, (Address, start register, six color bytes in RGB[])
 }
 

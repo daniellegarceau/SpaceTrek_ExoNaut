@@ -7,14 +7,14 @@
  *
  * Author: Andrew Gafford
  * Email: agafford@spacetrek.com
- * Date: Feb. 12th, 2024
+ * Date: May 20th, 2024
 **************************************************/
 
 #include <ExoNaut.h>                          //Include the ExoNaut library
 
 void setup() {                                //The setup() function runs once
-  Serial.begin(9600);                         //Setup the serial communication from the ExoNaut to the computer
-  delay(1000);                                //A one second delay to alow the program time to start
+  Serial.begin(9600);                         //Setup the serial communication from the ExoNaut to the computer at 9600 baud
+  delay(1000);                                //A one second delay to allow the program time to start
 }                                             //End of the setup() function
 
 void loop() {

@@ -1,7 +1,7 @@
 /**************************************************
  * L03_Buttons_Interrupt.ino
  * An example program to demonstrate how to use the A and B
- * buttons on the CoreX controller
+ * buttons on the CoreX controller with hardware interrupts.
  *
  * Author: Andrew Gafford
  * Email: agafford@spacetrek.com
@@ -15,20 +15,28 @@
  * stop what it is doing and go deal with the interrupt; it interrupts
  * the regular flow of the program. This lesson demonstrates using an
  * interrupt to capture button presses.
+ *
+ *
+ * Commands:
+ * exonaut robot;                           //This command sets up the exonaut robot object.  exonaut is the class and robot is the name of the object.
+ *                                          //This is the object that handles all of the motor commands and the features on the CoreX controller.
  * 
+ * robot.begin();                           //This command initializes or begins the things in the robot object.
+ *                                          //It is used once at the beginning of the program
  *
 **************************************************/
 
 #include <ExoNaut.h>                                    //include the main ExoNaut library
 
 volatile bool buttonA = false;                          //A variable to store if the A button has been pressed or not  
-                                                        //It is volatile because it is accessed from within an interrupt service routine
 volatile bool buttonB = false;                          //A variable to store if the B button has been pressed or not 
+                                                        //They are volatile because they're accessed from within an interrupt service routine
 
 exonaut robot;                                          //define the robot object
 
 void setup(){                                           //the setup() function runs a single time
-  Serial.begin(115200);                                 //start the Serial communication with the robot
+  robot.begin();                                        //start the robot object
+  Serial.begin(9600);                                   //start the Serial communication with the robot at 9600 baud
   attachInterrupt(BUTTON_A_PIN, isrA, FALLING);         //attach button A to an interrupt routine.  Button A has a LOW voltage when pressed
   attachInterrupt(BUTTON_B_PIN, isrB, RISING);          //attach button B to an interrupt routine.  Button B has a HIGH voltage when pressed
   delay(1500);                                          //wait 1.5 seconds

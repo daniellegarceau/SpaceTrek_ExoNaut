@@ -1,11 +1,19 @@
 /**************************************************
  * L02_Buttons.ino
  * An example program to demonstrate how to use the A and B
- * buttons on the CoreX controller
+ * buttons on the CoreX controller.
  *
  * Author: Andrew Gafford
  * Email: agafford@spacetrek.com
  * Date: May 20th, 2024
+ *
+ * Commands:
+ * exonaut robot;                           //This command sets up the exonaut robot object.  exonaut is the class and robot is the name of the object.
+ *                                          //This is the object that handles all of the motor commands and the features on the CoreX controller.
+ * 
+ * robot.begin();                           //This command initializes or begins the things in the robot object.
+ *                                          //It is used once at the beginning of the program
+ *
 **************************************************/
 
 #include <ExoNaut.h>                            //include the main ExoNaut library
@@ -13,7 +21,8 @@
 exonaut robot;                                  //define the robot object
 
 void setup(){                                   //the setup() function runs a single time
-  Serial.begin(115200);                         //start the Serial communication with the robot
+  robot.begin();                                //start the robot object
+  Serial.begin(9600);                           //start the Serial communication with the robot at 9600 baud
   delay(1500);                                  //wait 1.5 seconds
 }
 
