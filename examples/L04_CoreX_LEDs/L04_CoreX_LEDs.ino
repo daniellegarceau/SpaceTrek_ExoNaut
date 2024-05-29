@@ -23,7 +23,7 @@
  * robot.setColor(pixel-num, red, green, blue);     //This command sets the color of one of the RGB LEDs in memory
  *                                                  //You must call robot.show() to activate changes to the RGB colors.
  * 
- * robot.setColorAll(reg, green, blue);     //This command sets the RGB values for all six LEDs and automatically 
+ * robot.setColorAll(red, green, blue);     //This command sets the RGB values for all six LEDs and automatically 
  *                                          //calls the robot.show() command.
  *
  * robot.show();                            //This command makes the RGB LEDs show the colors set in their memory.
@@ -44,9 +44,9 @@ void setup() {                                    //the setup() function runs a 
 void loop() {                                     //the loop() function runs forever in a loop
   robot.setColorAll(150, 0, 0);                   //sets all six LEDs to RED at a brightness of 150 and shows it 
   delay(1000);                                    //wait for 1 second
-  robot.setColorAll(0, 150, 0);                   //sets all six LEDs to RED at a brightness of 150 and shows it
+  robot.setColorAll(0, 150, 0);                   //sets all six LEDs to GREEN at a brightness of 150 and shows it
   delay(1000);                                    //wait for 1 second
-  robot.setColorAll(0, 0, 150);                   //sets all six LEDs to RED at a brightness of 150 and shows it
+  robot.setColorAll(0, 0, 150);                   //sets all six LEDs to BLUE at a brightness of 150 and shows it
   delay(1000);                                    //wait for 1 second
   robot.clear();                                  //clears the LEDs and turns them off
   delay(1000);                                    //wait for 1 second
